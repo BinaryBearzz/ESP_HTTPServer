@@ -67,38 +67,23 @@ void handleGetStateLED()
   server.send(200, "application/json", respBody);
 }
 
-void handlePost()
-{
-  String body = server.arg("plain");
-
-  // Parse the JSON payload
-  StaticJsonDocument<200> doc;
-  deserializeJson(doc, body);
-
-  // Get the values from the JSON payload
-  String name = doc["name"];
-  int age = doc["age"];
-
-  Serial.print("Name: ");
-  Serial.println(name);
-  Serial.print("Age: ");
-  Serial.println(age);
-
-  server.send(200, "text/plain", "This is a POST request\n accept body reqeust: " + body);
-}
-
 void setup()
 {
   Serial.begin(115200);
   WiFi.begin(ssid, password);
   pinMode(LED, OUTPUT);
   digitalWrite(LED, HIGH); // my builtin LED active LOW
-  IPAddress staticIP(192, 168, 1, 119);
-  IPAddress gateway(192, 168, 1, 1);
-  IPAddress subnet(255, 255, 255, 0);
-  IPAddress dns(8, 8, 8, 8);
 
-  WiFi.config(staticIP, gateway, subnet, dns);
+  //@ setting if what to static ip device
+
+  // IPAddress staticIP(192, 168, 1, 119);
+  // IPAddress gateway(192, 168, 1, 1);
+  // IPAddress subnet(255, 255, 255, 0);
+  // IPAddress dns(8, 8, 8, 8);
+  // WiFi.config(staticIP, gateway, subnet, dns);
+
+  //@ setting if what to static ip device
+
   while (WiFi.status() != WL_CONNECTED)
   {
     delay(1000);
