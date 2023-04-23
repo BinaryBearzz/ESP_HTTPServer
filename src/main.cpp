@@ -5,12 +5,12 @@
 #include <ESPmDNS.h>
 #include <esp_wifi.h>
 #include "pictureText.h"
-#define LED 5
+#define LED 5 //<<-- config GPIO
 
-//Config wifi here!!
-const char *ssid = "SettingSSID";
-const char *password = "SettingPassword";
-//Config wifi here!!
+//@ Config wifi here!!
+const char *ssid = "SettingSSID";  //<--  
+const char *password = "SettingPassword";  //<-- 
+//@ Config wifi here!!
 
 const int port = 80;
 bool stateLED = 0;
@@ -72,9 +72,9 @@ void setup()
   Serial.begin(115200);
   WiFi.begin(ssid, password);
   pinMode(LED, OUTPUT);
-  digitalWrite(LED, HIGH); // my builtin LED active LOW
+  digitalWrite(LED, HIGH); // my builtin LED active LOW <<-- if GIOP active HIGH please set initail value LOW
 
-  //@ setting if what to static ip device
+  //@ setting if what to static ip device <<--
 
   // IPAddress staticIP(192, 168, 1, 119);
   // IPAddress gateway(192, 168, 1, 1);
@@ -82,7 +82,7 @@ void setup()
   // IPAddress dns(8, 8, 8, 8);
   // WiFi.config(staticIP, gateway, subnet, dns);
 
-  //@ setting if what to static ip device
+  //@ setting if what to static ip device <<--
 
   while (WiFi.status() != WL_CONNECTED)
   {
@@ -93,7 +93,7 @@ void setup()
   Serial.println("Connected to WiFi");
   Serial.println(WiFi.localIP());
 
-  if (!MDNS.begin("esp32"))
+  if (!MDNS.begin("esp32")) //@ config MDNS name here <<--
   {
     Serial.println("Error encountered while starting mDNS");
     return;
