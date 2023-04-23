@@ -7,8 +7,10 @@
 #include "pictureText.h"
 #define LED 5
 
+//Config wifi here!!
 const char *ssid = "SettingSSID";
 const char *password = "SettingPassword";
+//Config wifi here!!
 
 const int port = 80;
 bool stateLED = 0;
