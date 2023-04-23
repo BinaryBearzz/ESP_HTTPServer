@@ -3,20 +3,66 @@
 #include <WebServer.h>
 #include <ArduinoJson.h>
 #include <ESPmDNS.h>
+#include <esp_wifi.h>
+#include "pictureText.h"
+#define LED 5
 
-const char *ssid = "ABC_2.4G";
-const char *password = "Ais@auth";
+const char *ssid = "SettingSSID";
+const char *password = "SettingPassword";
 
-WebServer server(80);
+const int port = 80;
+bool stateLED = 0;
+
+WebServer server(port);
 
 void handleRoot()
 {
-  server.send(200, "text/plain", "Hello from ESP32!");
+  Serial.println("handleRoot");
+  server.send(200, "text/plain", "        Hello from ESP32!"
+                                 "\n ### List path Available ###"
+                                 "\n #    - [POST] /btn        #"
+                                 "\n #    - [POST] /onLED      #"
+                                 "\n #    - [POST] /offLED     #"
+                                 "\n #    - [GET] /stateLED    #"
+                                 "\n ###########################\n" +
+                                     String(charPicture));
 }
 
-void handleGet()
+void handleBtn()
 {
-  server.send(200, "text/plain", "This is a GET request");
+  server.send(200, "text/html", "<html><body><h1>Control LED</h1><p> PIN LED " + String(LED) + " - State: " + String((stateLED ? "ON" : "OFF")) + "</p><p><a href=btnClick><button class=button>Toggle LED</button></a></p></body></html>");
+}
+
+void handleButtonClick()
+{
+  stateLED = !stateLED;
+  digitalWrite(LED, !stateLED);
+  Serial.println("Button clicked");
+  handleBtn();
+}
+
+void handleControlLED(bool state)
+{
+  Serial.println("ControlLED");
+  stateLED = state;
+  digitalWrite(LED, !stateLED);
+  StaticJsonDocument<200> doc;
+  doc["message"] = "success";
+  doc["stateLED"] = (stateLED ? "ON" : "OFF");
+  String respBody;
+  serializeJson(doc, respBody);
+  server.send(200, "application/json", respBody);
+}
+
+void handleGetStateLED()
+{
+  Serial.println("StateLED");
+  StaticJsonDocument<200> doc;
+  doc["message"] = "success";
+  doc["stateLED"] = (stateLED ? "ON" : "OFF");
+  String respBody;
+  serializeJson(doc, respBody);
+  server.send(200, "application/json", respBody);
 }
 
 void handlePost()
@@ -31,20 +77,20 @@ void handlePost()
   String name = doc["name"];
   int age = doc["age"];
 
-  // Do something with the values
   Serial.print("Name: ");
   Serial.println(name);
   Serial.print("Age: ");
   Serial.println(age);
-  server.send(200, "text/plain", "This is a POST request");
+
+  server.send(200, "text/plain", "This is a POST request\n accept body reqeust: " + body);
 }
 
 void setup()
 {
   Serial.begin(115200);
-
   WiFi.begin(ssid, password);
-
+  pinMode(LED, OUTPUT);
+  digitalWrite(LED, HIGH); // my builtin LED active LOW
   IPAddress staticIP(192, 168, 1, 119);
   IPAddress gateway(192, 168, 1, 1);
   IPAddress subnet(255, 255, 255, 0);
@@ -62,25 +108,25 @@ void setup()
 
   if (!MDNS.begin("esp32"))
   {
-    Serial.println("Error starting mDNS");
+    Serial.println("Error encountered while starting mDNS");
     return;
   }
 
+  server.onNotFound(handleRoot);
   server.on("/", handleRoot);
-  server.on("/get", handleGet);
-  server.on("/post", HTTP_POST, handlePost);
+  server.on("/btn", HTTP_GET, handleBtn);
+  server.on("/btnClick", handleButtonClick);
+  server.on("/onLED", HTTP_POST, []()
+            { handleControlLED(true); });
+  server.on("/offLED", HTTP_POST, []()
+            { handleControlLED(false); });
+  server.on("/stateLED", HTTP_GET, handleGetStateLED);
 
   server.begin();
-
-  // if (MDNS.begin("lamp"))
-  // { // Start the mDNS responder for esp8266.local
-  //   Serial.println("MDNS responder started ");
-  // }
-  // MDNS.addService("http", "tcp", 80);
+  MDNS.addService("http", "tcp", port);
 }
 
 void loop()
 {
-  // MDNS.queryService("http", "tcp");
   server.handleClient();
 }
